@@ -1,0 +1,159 @@
+{
+  "name": "Бот курса Доллара (по расписанию)",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://www.cbr-xml-daily.ru/daily_json.js",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -16,
+        240
+      ],
+      "id": "113f4713-815e-4737-983a-22f082b5fc07",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = JSON.parse($input.item.json.data);\nconst usd = data.Valute.USD;\nconst diff = (usd.Value - usd.Previous).toFixed(2);\nconst trend = usd.Value > usd.Previous ? '📈' : '📉';\n\nreturn {\n  json: {\n    message: `💵 Курс USD: ${usd.Value.toFixed(2)} ₽ ${trend} (${diff > 0 ? '+' : ''}${diff})`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        240
+      ],
+      "id": "fd7b4bb9-e3e3-4857-a14c-460023cce837",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -192,
+        336
+      ],
+      "id": "bdd43a68-1e0d-4086-b944-b2cf3a50f752",
+      "name": "Telegram Trigger",
+      "webhookId": "479d004c-f33e-4bfe-a6f6-8044fab5f47d",
+      "credentials": {
+        "telegramApi": {
+          "id": "dWRSSgi2lRQI7gHn",
+          "name": "Telegram account 1598"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 13
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        160
+      ],
+      "id": "4b7e3c1d-87ab-4247-bc89-219cc22447e6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        240
+      ],
+      "id": "fdbc9ec2-6758-4b37-90a7-8057d7cbbe38",
+      "name": "Send a text message",
+      "webhookId": "ab5d61e4-2614-4945-aedb-add54cb89d2f",
+      "credentials": {
+        "telegramApi": {
+          "id": "dWRSSgi2lRQI7gHn",
+          "name": "Telegram account 1598"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "13b17969-b3f7-4e08-876f-f72119052131",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
+  },
+  "nodeGroups": [],
+  "id": "SZHIFdQ7R97uyR1A",
+  "tags": []
+}
